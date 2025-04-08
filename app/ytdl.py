@@ -31,7 +31,7 @@ class DownloadQueueNotifier:
         raise NotImplementedError
 
 class DownloadInfo:
-    def __init__(self, id, title, url, quality, format, folder, custom_name_prefix, error):
+    def __init__(self, id, title, url, quality, format, folder, custom_name_prefix, error=None, proxy=None, cookies=None):
         self.id = id if len(custom_name_prefix) == 0 else f'{custom_name_prefix}.{id}'
         self.title = title if len(custom_name_prefix) == 0 else f'{custom_name_prefix}.{title}'
         self.url = url
@@ -39,6 +39,8 @@ class DownloadInfo:
         self.format = format
         self.folder = folder
         self.custom_name_prefix = custom_name_prefix
+        self.proxy = proxy
+        self.cookies = cookies
         self.msg = self.percent = self.speed = self.eta = None
         self.status = "pending"
         self.size = None
@@ -55,6 +57,10 @@ class Download:
         self.output_template_chapter = output_template_chapter
         self.format = get_format(format, quality)
         self.ytdl_opts = get_opts(format, quality, ytdl_opts)
+        if info.proxy:
+            self.ytdl_opts['proxy'] = info.proxy
+        if info.cookies:
+            self.ytdl_opts['cookies'] = info.cookies
         self.info = info
         self.canceled = False
         self.tmpfilename = None
@@ -320,7 +326,7 @@ class DownloadQueue:
             dldirectory = base_directory
         return dldirectory, None
 
-    async def __add_entry(self, entry, quality, format, folder, custom_name_prefix, playlist_strict_mode, playlist_item_limit, auto_start, already):
+    async def __add_entry(self, entry, quality, format, folder, custom_name_prefix, playlist_strict_mode, playlist_item_limit, auto_start, already, proxy=None, cookies=None):
         if not entry:
             return {'status': 'error', 'msg': "Invalid/empty data was given."}
 
@@ -336,7 +342,7 @@ class DownloadQueue:
 
         if etype.startswith('url'):
             log.debug('Processing as an url')
-            return await self.add(entry['url'], quality, format, folder, custom_name_prefix, playlist_strict_mode, playlist_item_limit, auto_start, already)
+            return await self.add(entry['url'], quality, format, folder, custom_name_prefix, playlist_strict_mode, playlist_item_limit, auto_start, already, proxy, cookies)
         elif etype == 'playlist':
             log.debug('Processing as a playlist')
             entries = entry['entries']
@@ -353,7 +359,7 @@ class DownloadQueue:
                 for property in ("id", "title", "uploader", "uploader_id"):
                     if property in entry:
                         etr[f"playlist_{property}"] = entry[property]
-                results.append(await self.__add_entry(etr, quality, format, folder, custom_name_prefix, playlist_strict_mode, playlist_item_limit, auto_start, already))
+                results.append(await self.__add_entry(etr, quality, format, folder, custom_name_prefix, playlist_strict_mode, playlist_item_limit, auto_start, already, proxy, cookies))
             if any(res['status'] == 'error' for res in results):
                 return {'status': 'error', 'msg': ', '.join(res['msg'] for res in results if res['status'] == 'error' and 'msg' in res)}
             return {'status': 'ok'}
@@ -361,7 +367,7 @@ class DownloadQueue:
             log.debug('Processing as a video')
             key = entry.get('webpage_url') or entry['url']
             if not self.queue.exists(key):
-                dl = DownloadInfo(entry['id'], entry.get('title') or entry['id'], key, quality, format, folder, custom_name_prefix, error)
+                dl = DownloadInfo(entry['id'], entry.get('title') or entry['id'], key, quality, format, folder, custom_name_prefix, error, proxy, cookies)
                 dldirectory, error_message = self.__calc_download_path(quality, format, folder)
                 if error_message is not None:
                     return error_message

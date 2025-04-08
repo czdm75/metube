@@ -19,6 +19,8 @@ export interface Download {
   custom_name_prefix: string;
   playlist_strict_mode: boolean;
   playlist_item_limit: number;
+  proxy: string;
+  cookies: string;
   status: string;
   msg: string;
   percent: number;
@@ -103,8 +105,8 @@ export class DownloadsService {
     return of({status: 'error', msg: msg})
   }
 
-  public add(url: string, quality: string, format: string, folder: string, customNamePrefix: string, playlistStrictMode: boolean, playlistItemLimit: number, autoStart: boolean) {
-    return this.http.post<Status>('add', {url: url, quality: quality, format: format, folder: folder, custom_name_prefix: customNamePrefix, playlist_strict_mode: playlistStrictMode, playlist_item_limit: playlistItemLimit, auto_start: autoStart}).pipe(
+  public add(url: string, quality: string, format: string, folder: string, customNamePrefix: string, playlistStrictMode: boolean, playlistItemLimit: number, autoStart: boolean, proxy?: string, cookies?: string) {
+    return this.http.post<Status>('add', {url: url, quality: quality, format: format, folder: folder, custom_name_prefix: customNamePrefix, playlist_strict_mode: playlistStrictMode, playlist_item_limit: playlistItemLimit, auto_start: autoStart, proxy: proxy, cookies: cookies }).pipe(
       catchError(this.handleHTTPError)
     );
   }

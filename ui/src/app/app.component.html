@@ -94,6 +94,14 @@
                   <span class="input-group-text">Custom Name Prefix</span>
                   <input type="text" autocomplete="off" spellcheck="false" class="form-control" placeholder="Default" name="customNamePrefix" [(ngModel)]="customNamePrefix" [disabled]="addInProgress || downloads.loading">
                 </div>
+                <div class="input-group add-url-component">
+                  <span class="input-group-text">Proxy</span>
+                  <input type="text" autocomplete="off" spellcheck="false" class="form-control" placeholder="e.g. http://proxy:port" name="proxy" [(ngModel)]="proxy" [disabled]="addInProgress || downloads.loading">
+                </div>
+                <div class="input-group add-url-component">
+                  <span class="input-group-text">Cookies</span>
+                  <input type="text" autocomplete="off" spellcheck="false" class="form-control" placeholder="e.g. name1=value1; name2=value2" name="cookies" [(ngModel)]="cookies" [disabled]="addInProgress || downloads.loading">
+                </div>
                 <div class="add-url-component">
                   <div class="row align-items-center gy-2">
                     <div class="col-12 col-md-6 order-md-2">
